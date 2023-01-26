@@ -5,4 +5,59 @@ output: github_document
 
 ```{setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+library(tidymodels)
 ```
+
+```{r data, include = FALSE}
+hfi <- read_csv('https://www.openintro.org/data/csv/hfi.csv')
+
+dim(hfi)
+```
+
+The hfi data set has 1458 rows and 123 variables. Each row represents a countries data for a specific year.
+
+### Exploring Data for 2016
+
+```{r year 2016, include=FALSE}
+hfi_2016 <- filter(hfi, year == 2016)
+```
+
+Creating a scatter plot to evaluate the relationship between pf_score and pf_expression_control.
+I plot Expression Control on the x axis since it is the predictor variable.
+```{r scatter plot, include=TRUE}
+ggplot(data = hfi_2016, aes(pf_expression_control, pf_score)) +
+  geom_point(alpha = 0.5, size= 2) +
+  labs(x = "Expression Control", y = "Score",
+       title = "Scatter Plot for Expression Control and Score") 
+  
+```
+It looks like there could be a linear relationship in the scatter plot and we could use a linear model to predict personal freedom score.
+
+## Sum of Squared Residuals
+
+```{r Sum of Squared Residuals}
+# Using trial and Error
+
+statsr::plot_ss(x = pf_expression_control, y = pf_score, data = hfi_2016, showSquares = TRUE)
+```
+
+It is not easy to get the correct least squares line using this method.
+The least sum of squares I got was 278.852.
+
+## The Linear Model
+
+```{r Sum of Squared Residuals 2, echo=TRUE}
+# Using lm function from base R to plot a regression line
+m1 <- lm(pf_score ~ pf_expression_control, data = hfi_2016)
+
+tidy(m1)
+
+```
+
+From the code chunk above, the least squares regression line for the model is y = 4.28 + 0.542(pf_expression_control)
+
+The y intercept is 4.28 + 0.542(pf_expression_control) while the slope of the line is 0.542
+
+
+
