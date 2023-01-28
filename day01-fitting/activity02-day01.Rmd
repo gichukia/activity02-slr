@@ -1,13 +1,19 @@
 ---
-title: "Activity 2 - Day 1"
+title: "Model Fitting"
+author: "Alex Gichuki"
 output: github_document
 ---
 
-```{setup, include=FALSE}
+```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
 library(tidyverse)
 library(tidymodels)
 ```
+
 
 ```{r data, include = FALSE}
 hfi <- read_csv('https://www.openintro.org/data/csv/hfi.csv')
@@ -32,6 +38,8 @@ ggplot(data = hfi_2016, aes(pf_expression_control, pf_score)) +
        title = "Scatter Plot for Expression Control and Score") 
   
 ```
+
+
 It looks like there could be a linear relationship in the scatter plot and we could use a linear model to predict personal freedom score.
 
 ## Sum of Squared Residuals
@@ -55,9 +63,82 @@ tidy(m1)
 
 ```
 
-From the code chunk above, the least squares regression line for the model is y = 4.28 + 0.542(pf_expression_control)
+From the code chunk above, the least squares regression line for the model is pf_score = 4.28 + 0.542(pf_expression_control)
 
-The y intercept is 4.28 + 0.542(pf_expression_control) while the slope of the line is 0.542
+For countries with a pf_expression_control of 0 (those with the largest amount of political pressure on media content), we expect their mean personal freedom score to be 4.28.
+
+For every 1 unit increase in pf_expression_control, we expect a country’s mean personal freedom score to increase 0.542 units.
+
+## Overall Model Fit
+```{r Correlation Coefficient}
+# Obtaining the correlation coefficient between expression control and score.
+
+cor(hfi_2016$pf_expression_control, hfi_2016$pf_score)
+```
+
+Both variables have a correlation coefficient of 0.8450646 which indicates a strong positive correlation. An increase in expression control translates to an increase of 0.8450646 on the pf_score.
 
 
+Now using R Squared to assess the model:
+```{r R squared}
+glance(m1)
+```
+
+R Squared for this model is 0.714. This indicates that 71.4% of the variation in the score variable (dependent variable) can be explained by expression control (independent variable).
+
+
+Now creating a model for using pf_expression_control to predict hf_score:
+```{r model 2}
+m2 <- lm(hf_score ~ pf_expression_control, data = hfi_2016)
+
+tidy(m2)
+```
+
+From the code chunk above, the least squares regression line equation for the model is hf_score = 5.05 + 0.368(pf_expression_control)
+
+For countries with a pf_expression_control of 0 (those with the largest amount of political pressure on media content), we expect their mean human freedom score to be 5.05.
+
+For every 1 unit increase in pf_expression_control, we expect a country’s mean human freedom score to increase 0.368 units.
+
+
+## Prediction and Prediction Errors
+Creating a scatter plot with a smooth line.
+
+```{r Scatter plot with smooth line}
+ggplot(data = hfi_2016, aes(pf_expression_control, pf_score)) +
+  geom_point(alpha = 0.5, size= 2) +
+  geom_smooth(method = lm, se = FALSE) +
+  labs(x = "Expression Control", y = "Score",
+       title = "Scatter Plot for Expression Control and Score")
+```
+
+## Model Diagnostics
+Check linearity, nearly normal residuals, and constant variability to verify if the linear model is reliable:
+
+```{r}
+m1_aug <- augment(m1)
+m1_aug
+```
+
+Plotting the residuals vs fitted (predicted) values:
+Overlaying a red horizontal dashed line at 
+ (to help us check whether the residuals are distributed around 0)
+```{r}
+ggplot(data = m1_aug, aes(x = .fitted, y = .resid)) +
+  geom_point() +
+  geom_hline(yintercept = 0, linetype = "dashed", color = "red") +
+  xlab("Fitted values") +
+  ylab("Residuals")
+
+```
+
+This plot does not show an apparent pattern which indicate there is a linear relationship between the two variables.
+
+Checking for nearly normal residuals:
+
+```{r}
+ggplot(data = m1_aug, aes(x = .resid)) +
+  geom_histogram(binwidth = 0.25) +
+  xlab("Residuals")
+```
 
